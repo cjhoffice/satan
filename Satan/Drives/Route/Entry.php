@@ -48,47 +48,23 @@ class Entry
 	public function get()
 	{
 		$url = $this->getBasePath();
-
 		foreach ($this->routes as $namespace => $route) {
-			// preg_match_all('/\{(\??)(.*?)((((\|)([\\x00-\\xff]+?))?(\,\"(.*?)\")?)?)\}/is', $route, $matches);
-			preg_match_all('/\{(\?)?(.*?)(?:(?:(?:(\|)([\\x00-\\xff]+?))?(?:\,\"(.*?)\")?)?)\}/is', $route, $matches);
+			preg_match_all('/\{(\?)?([\x{4e00}-\x{9fa5}_a-zA-Z0-9"]*)(\|)?([\x{4e00}-\x{9fa5}_a-zA-Z0-9]*)(?:\,")?([^"]*)(?:")?\}/ius', $route, $matches);
 
 			$route = preg_replace('/(\{.+?\})/si', '%s', $route);
 			$route = preg_quote($route, '/');
 
 			$route = explode('\/', $route);
-			$route = implode(')(\/', $route);
+			$route = implode(')(?:\/', $route);
 			$route = explode('%s', $route);
-			$route = implode(')%s(', $route);
-			$route = str_replace('()', '', $route);
-
-			$route = substr($route, 1);
-
-			substr($route, -3) == '%s(' and $route  = substr($route, 0, -1);
-			substr($route, -2) == '%s'  or  $route .= ')';
+			$route = implode(')%s(?:', $route);
 			
+			$route = substr($route, 1);
+			substr($route, -2) == '%s'  or  $route .= ')';
+			$route = str_replace('(?:)', '', $route);
 			$route = array($route);
 
 			$_default = array();
-			// foreach ($matches['0'] as $key => $value) {
-			// 	array_push($_default, $matches['7'][$key]);
-
-			// 	$pattern  = '';
-				
-			// 	if ($matches['1'][$key] == '?' or $matches['6'][$key] == '|') {
-			// 		$pattern .= '?';
-			// 	}
-
-			// 	$matches['9'][$key] or $matches['9'][$key] = '\\w+';
-			// 	$pattern .= '(' . $matches['9'][$key] . ')';
-
-			// 	if ($matches['1'][$key] == '?' or $matches['6'][$key] == '|') {
-			// 		$pattern .= '?';
-			// 	}
-
-			// 	array_push($route, $pattern);
-			// }
-
 			foreach ($matches['0'] as $key => $value) {
 				array_push($_default, $matches['4'][$key]);
 
@@ -107,27 +83,13 @@ class Entry
 
 				array_push($route, $pattern);
 			}
-			
 			$route = call_user_func_array('sprintf', $route);
-			$route = '/^' . $route . '$/si';
-			var_dump($route);
-			if (preg_match_all($route, $url, $matches, 0, 0)) {
-				var_dump($matches);
+			$route = '/^' . $route . '$/is';
+			if (preg_match($route, $url, $matches, 0, 0)) {
 				array_shift($matches);
-				array_shift($matches);
-
-				foreach ($matches as $key => $value) {
-					if (count($matches) == 1) {
-						$matches[$key] = array_pop($value);
-						break;
-					} elseif (($key % 2) and is_array($value)) {
-						$matches[$key] = array_shift($value);
-					} else {
-						unset($matches[$key]);
-					}
-				}
 
 				$matches = array_values($matches);
+
 				$matches = array_map(function($a, $b) {
 					$a and $b = $a;
 					return $b;

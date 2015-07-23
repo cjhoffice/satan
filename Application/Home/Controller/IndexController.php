@@ -15,10 +15,11 @@ class Index extends Controller
 	 *
 	 * @return void
 	 * @author 
-	 * @route /{首页处理|123,"\d+"}-demo
+	 * @route /{首页处理|0,"\d+"}
 	 **/
 	public function aaaAction()
 	{
+		trigger_error('123');
 		echo '默认测试';
 		return $this;
 	}

@@ -6,7 +6,6 @@ class Error extends ErrorException {
 	
 	// #发送错误消息
 	public static function exception($e) {
-		// var_dump($e);
 		self::halt($e);
 	}
 
@@ -24,7 +23,7 @@ class Error extends ErrorException {
 
 	// # 抛出异常
 	public static function thrown($message, $code = 1) {
-		throw new Error($message, $code);
+		throw new self($message, $code);
 	}
 
 	// # 输出异常，并终止运行
@@ -34,8 +33,8 @@ class Error extends ErrorException {
 				 $e->xdebug_message,
 				 '</table>';
 		}
-		exit;
-		var_dump($e);
+		// exit;
+		// var_dump($e);
 	}
 
 }
